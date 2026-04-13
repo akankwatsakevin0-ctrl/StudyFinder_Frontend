@@ -10,17 +10,17 @@ const SearchBar = ({ onSearch, onFilter }) => {
     onSearch(searchTerm, selectedSubject);
   };
 
-  const subjects = [
-    'All Subjects',
-    'Mathematics',
-    'Physics',
-    'Chemistry',
-    'Biology',
+  const courses = [
+    'All courses',
+    'BSIT',
+    'BBA',
+    'HUMAN RESOURCES MANAGEMENT',
+    'NURSING',
     'Computer Science',
     'Engineering',
-    'Literature',
-    'History',
-    'Languages'
+    'THEOLOGY',
+    'PROCUREMENT MANAGEMENT',
+    'DATASCIENCE',
   ];
 
   return (
