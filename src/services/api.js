@@ -59,6 +59,45 @@ export const groupService = {
     const response = await api.post('/groups', groupData);
     return response.data;
   },
+  joinGroup: async (groupId) => {
+    const response = await api.post(`/groups/${groupId}/join`);
+    return response.data;
+  },
+  getMyGroups: async () => {
+    const response = await api.get('/groups/my-groups');
+    return response.data;
+  },
+  getGroupDetails: async (id) => {
+    const response = await api.get(`/groups/${id}`);
+    return response.data;
+  },
+  updateGroup: async (id, groupData) => {
+    const response = await api.put(`/groups/${id}`, groupData);
+    return response.data;
+  },
+  getGroupMembers: async (id) => {
+    const response = await api.get(`/groups/${id}/members`);
+    return response.data;
+  },
+  removeMember: async (groupId, userId) => {
+    const response = await api.delete(`/groups/${groupId}/members/${userId}`);
+    return response.data;
+  },
+};
+
+export const sessionService = {
+  createSession: async (sessionData) => {
+    const response = await api.post('/sessions', sessionData);
+    return response.data;
+  },
+  getGroupSessions: async (groupId) => {
+    const response = await api.get(`/sessions/group/${groupId}`);
+    return response.data;
+  },
+  getMySessions: async () => {
+    const response = await api.get('/sessions/my-sessions');
+    return response.data;
+  },
 };
 
 export default api;

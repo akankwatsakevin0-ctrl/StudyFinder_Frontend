@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Search, LayoutDashboard, LogOut, UserPlus, LogIn, User } from 'lucide-react';
+import { Search, LayoutDashboard, LogOut, UserPlus, LogIn, User, Shield } from 'lucide-react';
 
 const Navbar = ({ isLoggedIn, user, onLogout }) => {
   const activeStyle = "flex items-center gap-2 text-[#D4AF37] border-b-2 border-[#D4AF37] pb-1 transition";
@@ -21,15 +21,23 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
           <NavLink to="/groups" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
             <Search size={18}/> Groups
           </NavLink>
+          {(user?.role === 'leader' || user?.role === 'admin') && (
+            <NavLink to="/" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
+              <Shield size={18} className="text-[#D4AF37]" /> Management
+            </NavLink>
+          )}
           <div className="flex items-center space-x-4 border-l border-gray-700 pl-8">
             {isLoggedIn ? (
               <div className="flex items-center space-x-6">
-                <div className="flex items-center gap-3 bg-[#001a38] px-4 py-2 rounded-full border border-gray-700">
-                  <div className="bg-[#D4AF37] p-1.5 rounded-full text-[#002147]">
+                <Link 
+                  to="/profile" 
+                  className="flex items-center gap-3 bg-[#001a38] px-4 py-2 rounded-full border border-gray-700 hover:border-[#D4AF37] transition-all duration-300 group"
+                >
+                  <div className="bg-[#D4AF37] p-1.5 rounded-full text-[#002147] group-hover:scale-110 transition-transform">
                     <User size={20} />
                   </div>
-                  <span className="font-semibold text-sm tracking-wide">{user?.name}</span>
-                </div>
+                  <span className="font-semibold text-sm tracking-wide group-hover:text-[#D4AF37] transition-colors">{user?.name}</span>
+                </Link>
                 <button 
                   onClick={onLogout}
                   className="flex items-center gap-2 text-gray-400 hover:text-white transition text-xs font-bold uppercase tracking-widest"

@@ -6,6 +6,12 @@ import GroupsPage from './pages/GroupsPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 
+import ProfilePage from './pages/ProfilePage';
+import GroupDetailsPage from './pages/GroupDetailsPage';
+import GroupManagementPage from './pages/GroupManagementPage';
+import CreateSessionPage from './pages/CreateSessionPage';
+import { Toaster } from 'react-hot-toast';
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
@@ -23,6 +29,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 text-gray-900">
+        <Toaster position="top-right" />
         <Navbar isLoggedIn={isLoggedIn} user={user} onLogout={handleLogout} />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Routes>
@@ -33,6 +40,22 @@ function App() {
             <Route 
               path="/groups" 
               element={isLoggedIn ? <GroupsPage /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/groups/:id" 
+              element={isLoggedIn ? <GroupDetailsPage /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/groups/:id/manage" 
+              element={isLoggedIn ? <GroupManagementPage /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/groups/:id/sessions/create" 
+              element={isLoggedIn ? <CreateSessionPage /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/profile" 
+              element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />} 
             />
             <Route 
               path="/login" 

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import GroupCard from './GroupCard';
 import { groupService } from '../services/api';
 
@@ -7,6 +9,7 @@ const BrowseGroups = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchGroups();
@@ -23,6 +26,17 @@ const BrowseGroups = () => {
       setError('Failed to load study groups. Please try again later.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleJoin = async (groupId) => {
+    try {
+      await groupService.joinGroup(groupId);
+      toast.success('Successfully joined the group!');
+      navigate(`/groups/${groupId}`);
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to join group. Please try again.';
+      toast.error(message);
     }
   };
 
@@ -69,12 +83,16 @@ const BrowseGroups = () => {
       ) : (
         <div className="grid md:grid-cols-3 gap-6">
           {filteredGroups.map(group => (
-            <GroupCard key={group.id} group={{
-              ...group,
-              name: group.groupName, // Map for compatibility with GroupCard
-              location: group.meetingLocation,
-              members: '0/15' // Placeholder until backend supports member counts
-            }} />
+            <GroupCard 
+              key={group.id} 
+              onJoin={handleJoin}
+              group={{
+                ...group,
+                name: group.groupName,
+                location: group.meetingLocation,
+                members: 'Joined' // Simplified status for now
+              }} 
+            />
           ))}
         </div>
       )}

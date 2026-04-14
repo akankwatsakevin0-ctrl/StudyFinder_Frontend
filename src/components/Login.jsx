@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authService } from '../services/api';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -6,34 +7,17 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Helper function to hash password using browser's SubtleCrypto
-  const hashPassword = async (pwd) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(pwd);
-    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      const inputHash = await hashPassword(password);
-      const hardcodedEmail = process.env.REACT_APP_HARDCODED_USER_EMAIL;
-      const hardcodedHash = process.env.REACT_APP_HARDCODED_USER_HASH;
-      const hardcodedName = process.env.REACT_APP_HARDCODED_USER_NAME;
-
-      if (email === hardcodedEmail && inputHash === hardcodedHash) {
-        onLogin({ email: hardcodedEmail, name: hardcodedName });
-      } else {
-        setError('Invalid email or password. Please try again.');
-      }
+      const userData = await authService.login(email, password);
+      onLogin(userData);
     } catch (err) {
       console.error('Login error:', err);
-      setError('An error occurred during sign in.');
+      setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
