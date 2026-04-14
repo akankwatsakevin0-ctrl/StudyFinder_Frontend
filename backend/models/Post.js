@@ -1,10 +1,27 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const PostSchema = new mongoose.Schema({
-    group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    content: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+const Post = sequelize.define('Post', {
+    id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    groupId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false
+    },
+    authorId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false
+    },
+    content: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    }
+}, {
+    tableName: 'posts',
+    timestamps: true
 });
 
-module.exports = mongoose.model('Post', PostSchema);
+module.exports = Post;

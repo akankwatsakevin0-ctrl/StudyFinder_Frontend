@@ -1,15 +1,52 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const GroupSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    courseCode: { type: String, required: true },
-    courseName: { type: String, required: true },
-    faculty: { type: String, required: true },
-    description: { type: String, required: true },
-    meetingLocation: { type: String, required: true },
-    leader: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    createdAt: { type: Date, default: Date.now }
+const Group = sequelize.define('Group', {
+    id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    groupName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+    courseName: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    courseCode: {
+        type: DataTypes.STRING(100),
+        allowNull: false
+    },
+    faculty: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    description: {
+        type: DataTypes.STRING(500),
+        allowNull: false
+    },
+    meetingLocation: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    meetingType: {
+        type: DataTypes.ENUM('physical', 'online', 'hybrid'),
+        defaultValue: 'physical'
+    },
+    leaderId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false
+    },
+    isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    }
+}, {
+    tableName: 'groups',
+    timestamps: true
 });
 
-module.exports = mongoose.model('Group', GroupSchema);
+module.exports = Group;

@@ -1,36 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import GroupCard from './GroupCard';
+import { groupService } from '../services/api';
 
 const BrowseGroups = () => {
-  const ucuGroups = [
-    { 
-      id: 1, 
-      name: 'Web & Mobile App Dev', 
-      courseCode: 'CSC1202', 
-      members: '0/15', 
-      location: 'FET Lab B',
-      time: 'Mondays 2-4 PM',
-      description: 'Project-based exam group for Easter 2026. Working on React and Node.js.' 
-    },
-    { 
-      id: 2, 
-      name: 'Data Structures', 
-      courseCode: 'CSC1107', 
-      members: '0/10', 
-      location: 'Main Library',
-      time: 'Wednesdays 10 AM',
-      description: 'Reviewing algorithms and complexity analysis for upcoming assessments.' 
-    },
-    { 
-      id: 3, 
-      name: 'System Administration', 
-      courseCode: 'BIT1205', 
-      members: '0/20', 
-      location: 'Online',
-      time: 'Fridays 5 PM',
-      description: 'Discussing server configurations and network security protocols.' 
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const fetchGroups = async () => {
+    try {
+      setLoading(true);
+      const data = await groupService.getAllGroups();
+      setGroups(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching groups:', err);
+      setError('Failed to load study groups. Please try again later.');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const filteredGroups = groups.filter(group => 
+    group.courseCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    group.groupName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -40,20 +39,45 @@ const BrowseGroups = () => {
         <div className="flex flex-wrap gap-4">
           <input 
             type="text" 
-            placeholder="Search course code..." 
+            placeholder="Search course code or group name..." 
             className="flex-1 min-w-[250px] p-3 border rounded-lg focus:ring-2 focus:ring-[#002147] outline-none" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button className="bg-[#002147] text-white px-8 py-3 rounded-lg font-bold">
-            Search
+          <button 
+            className="bg-[#002147] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#003366] transition-colors"
+            onClick={fetchGroups}
+          >
+            Refresh
           </button>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {ucuGroups.map(group => (
-          <GroupCard key={group.id} group={group} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#002147] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading groups...</p>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg border border-red-200">
+          {error}
+        </div>
+      ) : filteredGroups.length === 0 ? (
+        <div className="text-center py-10 bg-white rounded-xl shadow-sm">
+          <p className="text-gray-600">No study groups found matching your search.</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-6">
+          {filteredGroups.map(group => (
+            <GroupCard key={group.id} group={{
+              ...group,
+              name: group.groupName, // Map for compatibility with GroupCard
+              location: group.meetingLocation,
+              members: '0/15' // Placeholder until backend supports member counts
+            }} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

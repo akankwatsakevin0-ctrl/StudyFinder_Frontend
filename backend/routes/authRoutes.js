@@ -1,8 +1,8 @@
-﻿const express = require('express');
+const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
-const User = require('.../models/user');
-const { protect } = require('../middleware');
+const User = require('../models/User');
+const { protect } = require('../middleware/middleware');
 
 const router = express.Router();
 

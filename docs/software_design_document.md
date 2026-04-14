@@ -6,10 +6,11 @@
 The StudyGroup Finder is a web application explicitly tailored for computing students (e.g., UCU) to discover, join, and manage academic study groups efficiently. 
 
 ## 2. System Architecture
-The application follows a client-server architecture:
-*   **Client-Side (Frontend):** A Single Page Application (SPA) built using React.js.
-*   **Server-Side (Backend):** A RESTful API built with Node.js and Express.js.
-*   **Database:** Relational Database (MySQL) managed via Sequelize ORM, complemented by SQL scripts. (Note: Legacy/Experimental MongoDB models are present in the codebase but MySQL is the active relational store).
+This project follows a full-stack architecture consisting of a frontend, backend, and MySQL database working together in a decoupled system.
+
+*   **Frontend (Client-Side):** Responsible for the user interface. It interacts only with the backend through API requests, without direct access to the database. Built using React.js and Tailwind CSS.
+*   **Backend (Server-Side):** Acts as the middle layer, handling business logic, processing requests, and communicating with the MySQL database. Built with Node.js and Express.js.
+*   **Database:** Serves as the central data store, maintaining structured information such as users, groups, and relationships, ensuring consistency and integrity. Powered by MySQL and managed via Sequelize ORM.
 
 ## 3. Frontend Architecture
 *   **Framework:** React 18
