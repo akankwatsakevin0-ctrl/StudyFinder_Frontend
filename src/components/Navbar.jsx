@@ -15,12 +15,16 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
         </Link>
         
         <div className="flex space-x-8 items-center">
-          <NavLink to="/" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
-            <LayoutDashboard size={18}/> My Dashboard
-          </NavLink>
-          <NavLink to="/groups" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
-            <Search size={18}/> Groups
-          </NavLink>
+          {user?.role !== 'admin' && (
+            <>
+              <NavLink to="/" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
+                <LayoutDashboard size={18}/> My Dashboard
+              </NavLink>
+              <NavLink to="/groups" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
+                <Search size={18}/> Groups
+              </NavLink>
+            </>
+          )}
           {user?.role === 'admin' && (
             <NavLink to="/admin" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
               <Shield size={18} className="text-[#D4AF37]" /> Admin Dashboard
