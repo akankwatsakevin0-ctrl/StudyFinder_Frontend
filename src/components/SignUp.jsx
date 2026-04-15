@@ -14,6 +14,7 @@ const SignUp = ({ onLogin }) => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -31,14 +32,19 @@ const SignUp = ({ onLogin }) => {
 
     setIsLoading(true);
     try {
-      const userData = await authService.register({
+      const payload = {
         name: formData.name,
         email: formData.email,
         registrationNumber: formData.registrationNumber,
         password: formData.password,
-        programOfStudy: formData.programOfStudy,
-        yearOfStudy: parseInt(formData.yearOfStudy)
-      });
+        role: isAdmin ? 'admin' : 'student'
+      };
+      if (!isAdmin) {
+        payload.programOfStudy = formData.programOfStudy;
+        payload.yearOfStudy = parseInt(formData.yearOfStudy);
+      }
+      
+      const userData = await authService.register(payload);
       
       if (onLogin) {
         onLogin(userData);
@@ -106,31 +112,45 @@ const SignUp = ({ onLogin }) => {
             placeholder="M2XBXXXXX" 
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Program</label>
+        <div className="flex items-center justify-between mt-2 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+          <label className="flex items-center text-sm font-bold text-gray-700 cursor-pointer w-full">
             <input 
-              type="text" 
-              name="programOfStudy"
-              required
-              value={formData.programOfStudy}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#002147] outline-none text-sm" 
-              placeholder="BSIT" 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Year</label>
-            <select 
-              name="yearOfStudy"
-              value={formData.yearOfStudy}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#002147] outline-none text-sm"
-            >
-              {[1, 2, 3, 4, 5].map(y => <option key={y} value={y}>Year {y}</option>)}
-            </select>
-          </div>
+              type="checkbox" 
+              className="mr-3 w-4 h-4 cursor-pointer" 
+              checked={isAdmin}
+              onChange={(e) => setIsAdmin(e.target.checked)}
+            /> 
+            Register as Administrator
+          </label>
         </div>
+
+        {!isAdmin && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Program</label>
+              <input 
+                type="text" 
+                name="programOfStudy"
+                required={!isAdmin}
+                value={formData.programOfStudy}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#002147] outline-none text-sm" 
+                placeholder="BSIT" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Year</label>
+              <select 
+                name="yearOfStudy"
+                value={formData.yearOfStudy}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#002147] outline-none text-sm"
+              >
+                {[1, 2, 3, 4, 5].map(y => <option key={y} value={y}>Year {y}</option>)}
+              </select>
+            </div>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
           <input 

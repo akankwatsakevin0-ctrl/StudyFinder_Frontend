@@ -8,8 +8,10 @@ import SignUpPage from './pages/SignUpPage';
 import ProfilePage from './pages/ProfilePage';
 import GroupDetailsPage from './pages/GroupDetailsPage';
 import GroupManagementPage from './pages/GroupManagementPage';
+import GroupDiscussionsPage from './pages/GroupDiscussionsPage';
 import CreateSessionPage from './pages/CreateSessionPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -62,6 +64,10 @@ function App() {
               element={isLoggedIn ? <GroupDetailsPage /> : <Navigate to="/login" replace />} 
             />
             <Route 
+              path="/groups/:id/discussions" 
+              element={isLoggedIn ? <GroupDiscussionsPage /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
               path="/groups/:id/manage" 
               element={isLoggedIn ? <GroupManagementPage /> : <Navigate to="/login" replace />} 
             />
@@ -86,6 +92,10 @@ function App() {
             <Route 
               path="/login" 
               element={isLoggedIn ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />} 
+            />
+            <Route 
+              path="/admin/login" 
+              element={isLoggedIn ? <Navigate to="/" replace /> : <AdminLoginPage onLogin={handleLogin} />} 
             />
             <Route path="/signup" element={isLoggedIn ? <Navigate to="/" replace /> : <SignUpPage onLogin={handleLogin} />} />
             <Route path="*" element={<Navigate to={isLoggedIn ? "/" : "/login"} replace />} />

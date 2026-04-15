@@ -65,11 +65,16 @@ const GroupDetailsPage = () => {
           <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           Back to Groups
         </Link>
-        {isLeader && (
-          <Link to={`/groups/${id}/manage`} className="bg-[#002147] text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-opacity-90 transition flex items-center gap-2 shadow-md">
-            <Settings size={16} /> Manage Group
+        <div className="flex gap-3">
+          <Link to={`/groups/${id}/discussions`} className="bg-[#D4AF37] text-[#002147] px-5 py-2 rounded-xl text-sm font-bold hover:bg-yellow-500 transition flex items-center gap-2 shadow-md">
+            <MessageSquare size={16} /> Discussions
           </Link>
-        )}
+          {isLeader && (
+            <Link to={`/groups/${id}/manage`} className="bg-[#002147] text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-opacity-90 transition flex items-center gap-2 shadow-md">
+              <Settings size={16} /> Manage Group
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -161,14 +166,6 @@ const GroupDetailsPage = () => {
             )}
           </div>
 
-          {/* Group Discussion Placeholder */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center py-16">
-            <div className="bg-gray-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-              <MessageSquare className="text-gray-400" size={30} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Group Discussion</h3>
-            <p className="text-gray-500 max-w-sm mx-auto">This feature is coming soon! Soon you'll be able to chat and share resources with your fellow members.</p>
-          </div>
         </div>
 
         {/* Info Sidebar */}

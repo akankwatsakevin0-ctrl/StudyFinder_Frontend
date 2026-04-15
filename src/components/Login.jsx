@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { authService } from '../services/api';
 
 const Login = ({ onLogin }) => {
@@ -78,8 +79,11 @@ const Login = ({ onLogin }) => {
           {isLoading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
-      <div className="mt-8 text-center text-sm text-gray-600">
-        Don't have an account? <a href="/signup" className="text-[#D4AF37] font-bold hover:underline">Create an account</a>
+      <div className="mt-8 text-center text-sm text-gray-600 space-y-3">
+        <p>Don't have an account? <Link to="/signup" className="text-[#D4AF37] font-bold hover:underline">Create an account</Link></p>
+        <p className="pt-4 border-t border-gray-100 mt-4">
+          Are you an administrator? <Link to="/admin/login" className="text-[#002147] font-bold hover:underline">Admin Sign In</Link>
+        </p>
       </div>
     </div>
   );
