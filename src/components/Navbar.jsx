@@ -21,9 +21,9 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
           <NavLink to="/groups" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
             <Search size={18}/> Groups
           </NavLink>
-          {(user?.role === 'leader' || user?.role === 'admin') && (
-            <NavLink to="/" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
-              <Shield size={18} className="text-[#D4AF37]" /> Management
+          {user?.role === 'admin' && (
+            <NavLink to="/admin" className={({ isActive }) => isActive ? activeStyle : inactiveStyle}>
+              <Shield size={18} className="text-[#D4AF37]" /> Admin Dashboard
             </NavLink>
           )}
           <div className="flex items-center space-x-4 border-l border-gray-700 pl-8">

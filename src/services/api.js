@@ -100,4 +100,19 @@ export const sessionService = {
   },
 };
 
+export const adminService = {
+  getStats: async () => {
+    const response = await api.get('/admin/stats');
+    return response.data;
+  },
+  getAllUsers: async () => {
+    const response = await api.get('/admin/users');
+    return response.data;
+  },
+  getAllGroups: async () => {
+    const response = await api.get('/admin/groups');
+    return response.data;
+  },
+};
+
 export default api;

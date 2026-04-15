@@ -5,11 +5,11 @@ import DashboardPage from './pages/DashboardPage';
 import GroupsPage from './pages/GroupsPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
-
 import ProfilePage from './pages/ProfilePage';
 import GroupDetailsPage from './pages/GroupDetailsPage';
 import GroupManagementPage from './pages/GroupManagementPage';
 import CreateSessionPage from './pages/CreateSessionPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -72,6 +72,16 @@ function App() {
             <Route 
               path="/profile" 
               element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />} 
+            />
+            <Route
+              path="/admin"
+              element={
+                isLoggedIn
+                  ? user?.role === 'admin'
+                    ? <AdminDashboardPage user={user} />
+                    : <Navigate to="/" replace />
+                  : <Navigate to="/login" replace />
+              }
             />
             <Route 
               path="/login" 
