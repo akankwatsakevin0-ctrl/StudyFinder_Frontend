@@ -1,34 +1,40 @@
 # Current Project Status Report
 **Project:** StudyGroup Finder
-**Date:** 14 April 2026
+**Date:** 15 April 2026
 
 ## 1. Executive Summary
-The project is currently in the active development phase. Both the frontend and backend foundational architectures have been laid out. The core database schema has been conceptualized, and the frontend user interface has established a strong aesthetic baseline corresponding to a university motif.
+The project is currently in active full-stack development. The frontend is built with React, Tailwind CSS, and React Router v6, while the backend is implemented with Express and Sequelize on MySQL. The application supports protected routes, group browsing, and a JWT-based authentication scaffold on the server.
 
 ## 2. Completed Work
 
 ### 2.1 Frontend
-*   Initialized React JS application structured with Tailwind CSS.
-*   Created core components (`Navbar`, `BrowseGroups`, `CreateGroup`, `GroupCard`).
-*   Established a global layout and navigation state.
-*   Designed a responsive grid for displaying study groups.
-*   Mock data integration is completed to visualize the UI state.
+*   React application is implemented with `react-router-dom` routing in `src/App.jsx`.
+*   Protected routes for `/`, `/groups`, `/login`, and `/signup` are configured.
+*   Core UI components and pages are present: `Navbar`, `BrowseGroups`, `CreateGroup`, `GroupCard`, `DashboardPage`, `GroupsPage`, `LoginPage`, and `SignUpPage`.
+*   `src/services/api.js` configures Axios with a base API URL and JWT request interceptor.
+*   `BrowseGroups.jsx` loads groups from the backend via `groupService.getAllGroups()` and includes search/filtering.
+*   UI layout and styles are implemented consistently with Tailwind CSS.
 
 ### 2.2 Backend
-*   Express server (`server.js`) successfully configured with error handling and modular routing.
-*   Database connection initialization configured for MySQL using Sequelize.
-*   Core database SQL schemas formulated (`Database.sql` details `users`, `groups`, `sessions`, `group_members`).
-*   Controller files (`authController.js`, `groupController.js`, etc.) and corresponding routing files generated.
+*   Express server is configured in `backend/server.js` with CORS, JSON parsing, error middleware, and automatic Sequelize sync.
+*   `backend/config/database.js` connects to MySQL using Sequelize and environment variables.
+*   Sequelize models are defined for `User` and `Group` (`backend/models/User.js`, `backend/models/Group.js`), with additional models present for sessions, comments, posts, and group members.
+*   Authentication routes are implemented in `backend/routes/authRoutes.js` with JWT generation, registration, login, and protected `/me` endpoint.
+*   Group listing is implemented in `backend/routes/groupRoutes.js` via `GET /api/groups`.
+*   `backend/package.json` correctly targets MySQL/Sequelize dependencies.
 
 ## 3. Current Issues & Technical Debt
 
-*   **Database Duplication/Ambiguity:** The backend `package.json` contains dependencies for both MongoDB (`mongoose`) and MySQL (`mysql2`, `sequelize`). There are Mongoose models (e.g., `backend/models/User.js`) co-existing with Sequelize setup and `Database.sql`. The team needs to definitively standardize on one ORM/Database to prevent architectural conflicts.
-*   **Frontend Routing:** Currently, routing is handled via a naive React hook (`useState('browse')`) in `App.js`. While `react-router-dom` is installed, it has not been implemented.
-*   **API Integration:** The frontend is currently displaying hard-coded mock data. Axios is installed but API integration connecting the frontend to the Express backend needs implementation.
+*   **Frontend auth flow is incomplete:** `src/components/Login.jsx` uses hardcoded environment credentials and does not call `authService.login()`. `src/components/SignUp.jsx` is currently a static form without backend integration.
+*   **Create group flow is not wired:** `CreateGroup.jsx` builds the UI but does not submit data to the backend, and `POST /api/groups` remains a placeholder route.
+*   **Backend route coverage is partial:** Group listing is functional, but group creation and some admin/session endpoints still require implementation.
+*   **Placeholder UI mapping:** `BrowseGroups.jsx` still uses a placeholder `members: '0/15'` value because backend member counts are not yet exposed.
+*   **Environment / deployment docs:** `.env` usage is present in backend and frontend service scaffolding, but the current project lacks a single documented environment variable setup.
 
 ## 4. Pending Tasks & Next Steps
 
-1.  **Resolve Database Ambiguity:** Finalize the removal of Mongoose schemas if MySQL/Sequelize is the chosen path (as indicated by the active `Database.sql`).
-2.  **Implement React Router:** Refactor `App.js` to use `BrowserRouter`, `Routes`, and `Route` from `react-router-dom`.
-3.  **Connect Client to Server:** Replace the mock array `ucuGroups` in `BrowseGroups.jsx` with an Axios `useEffect` fetch call to `http://localhost:5000/api/groups`.
-4.  **Complete Authentication Flow:** Wire up the frontend login/registration screens to the backend JWT authentication endpoints.
+1.  Connect `src/components/Login.jsx` and `src/components/SignUp.jsx` to `src/services/api.js` so authentication uses real backend endpoints.
+2.  Implement `POST /api/groups` in `backend/routes/groupRoutes.js` and connect `CreateGroup.jsx` to submit new study groups.
+3.  Expose real member counts and additional group metadata from the backend response, removing placeholder values in `BrowseGroups.jsx`.
+4.  Verify Sequelize model associations, seed data, and `Database.sql` consistency with the active model definitions.
+5.  Document required `.env` values for frontend and backend deployment, including `VITE_API_URL`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `JWT_SECRET`, and `JWT_EXPIRE`.
