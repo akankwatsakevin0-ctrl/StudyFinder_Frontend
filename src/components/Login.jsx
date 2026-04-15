@@ -17,7 +17,12 @@ const Login = ({ onLogin }) => {
       onLogin(userData);
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
+      if (err.response?.data?.errors) {
+        const errorMsgs = err.response.data.errors.map(e => e.msg).join('. ');
+        setError(errorMsgs);
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.msg || 'Invalid email or password. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -9,7 +9,13 @@ const DashboardPage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const currentUser = JSON.parse(localStorage.getItem('user'));
+  let currentUser = {};
+  try {
+    const storedUser = localStorage.getItem('user');
+    currentUser = storedUser && storedUser !== 'undefined' ? JSON.parse(storedUser) : {};
+  } catch (e) {
+    console.error('Error parsing user from localStorage:', e);
+  }
 
   useEffect(() => {
     const fetchData = async () => {

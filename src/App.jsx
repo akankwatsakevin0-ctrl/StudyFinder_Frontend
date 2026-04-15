@@ -16,6 +16,22 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (storedUser && token) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setIsLoggedIn(true);
+        setUser(userData);
+      } catch (err) {
+        console.error('Failed to parse stored user:', err);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    }
+  }, []);
+
   const handleLogin = (userData) => {
     setIsLoggedIn(true);
     setUser(userData);
@@ -61,7 +77,7 @@ function App() {
               path="/login" 
               element={isLoggedIn ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />} 
             />
-            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/signup" element={isLoggedIn ? <Navigate to="/" replace /> : <SignUpPage onLogin={handleLogin} />} />
             <Route path="*" element={<Navigate to={isLoggedIn ? "/" : "/login"} replace />} />
           </Routes>
         </main>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { authService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
-const SignUp = () => {
+const SignUp = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -31,7 +31,7 @@ const SignUp = () => {
 
     setIsLoading(true);
     try {
-      await authService.register({
+      const userData = await authService.register({
         name: formData.name,
         email: formData.email,
         registrationNumber: formData.registrationNumber,
@@ -39,9 +39,18 @@ const SignUp = () => {
         programOfStudy: formData.programOfStudy,
         yearOfStudy: parseInt(formData.yearOfStudy)
       });
-      navigate('/login');
+      
+      if (onLogin) {
+        onLogin(userData);
+      }
+      navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      if (err.response?.data?.errors) {
+        const errorMsgs = err.response.data.errors.map(e => e.msg).join('. ');
+        setError(errorMsgs);
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

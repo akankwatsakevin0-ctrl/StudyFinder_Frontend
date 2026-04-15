@@ -9,8 +9,14 @@ const GroupDetailsPage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const currentUser = JSON.parse(localStorage.getItem('user'));
-  const isLeader = group && (currentUser?._id === group.leaderId || currentUser?.id === group.leaderId);
+  let currentUser = {};
+  try {
+    const storedUser = localStorage.getItem('user');
+    currentUser = storedUser && storedUser !== 'undefined' ? JSON.parse(storedUser) : {};
+  } catch (e) {
+    console.error('Error parsing user:', e);
+  }
+  const isLeader = group && (Number(currentUser?._id) === Number(group.leaderId) || Number(currentUser?.id) === Number(group.leaderId));
 
   useEffect(() => {
     fetchGroupData();
@@ -80,7 +86,7 @@ const GroupDetailsPage = () => {
               <h1 className="text-4xl font-extrabold text-white tracking-tight leading-tight">{group.groupName}</h1>
               <p className="text-blue-100 text-lg mt-2 font-medium opacity-90">{group.courseName}</p>
             </div>
-            
+
             <div className="p-8">
               <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Layers className="text-[#D4AF37]" size={20} /> About this Group
@@ -101,7 +107,7 @@ const GroupDetailsPage = () => {
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <Calendar className="text-[#D4AF37]" size={22} /> Study Sessions
             </h3>
-            
+
             {sessions.length === 0 ? (
               <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                 <Clock className="text-gray-300 mx-auto mb-3" size={32} />
@@ -115,41 +121,41 @@ const GroupDetailsPage = () => {
             ) : (
               <div className="space-y-4">
                 {sessions.map(session => (
-                    <div key={session.id} className="p-5 bg-gray-50 rounded-xl border border-gray-100 hover:border-[#D4AF37]/30 transition group">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="space-y-1">
-                                <h4 className="font-bold text-gray-800 text-lg">{session.topic}</h4>
-                                <p className="text-sm text-gray-500 line-clamp-1">{session.description}</p>
-                                <div className="flex flex-wrap gap-4 mt-2">
-                                    <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
-                                        <Calendar size={12} className="text-[#D4AF37]" /> {new Date(session.sessionDate).toLocaleDateString()}
-                                    </span>
-                                    <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
-                                        <Clock size={12} className="text-[#D4AF37]" /> {session.sessionTime}
-                                    </span>
-                                    <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
-                                        <MapPin size={12} className="text-[#D4AF37]" /> {session.location}
-                                    </span>
-                                </div>
-                            </div>
-                            {session.location.startsWith('http') && (
-                                <a 
-                                  href={session.location} target="_blank" rel="noopener noreferrer"
-                                  className="bg-[#002147] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
-                                >
-                                  Join Meeting <ExternalLink size={14} />
-                                </a>
-                            )}
+                  <div key={session.id} className="p-5 bg-gray-50 rounded-xl border border-gray-100 hover:border-[#D4AF37]/30 transition group">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-gray-800 text-lg">{session.topic}</h4>
+                        <p className="text-sm text-gray-500 line-clamp-1">{session.description}</p>
+                        <div className="flex flex-wrap gap-4 mt-2">
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
+                            <Calendar size={12} className="text-[#D4AF37]" /> {new Date(session.sessionDate).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
+                            <Clock size={12} className="text-[#D4AF37]" /> {session.sessionTime}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
+                            <MapPin size={12} className="text-[#D4AF37]" /> {session.location}
+                          </span>
                         </div>
+                      </div>
+                      {session.location.startsWith('http') && (
+                        <a
+                          href={session.location} target="_blank" rel="noopener noreferrer"
+                          className="bg-[#002147] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
+                        >
+                          Join Meeting <ExternalLink size={14} />
+                        </a>
+                      )}
                     </div>
+                  </div>
                 ))}
                 {isLeader && (
-                    <Link 
-                      to={`/groups/${id}/sessions/create`} 
-                      className="block w-full text-center py-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-gray-500 font-bold hover:bg-gray-100 hover:border-[#D4AF37]/50 transition"
-                    >
-                      + Schedule New Session
-                    </Link>
+                  <Link
+                    to={`/groups/${id}/sessions/create`}
+                    className="block w-full text-center py-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-gray-500 font-bold hover:bg-gray-100 hover:border-[#D4AF37]/50 transition"
+                  >
+                    + Schedule New Session
+                  </Link>
                 )}
               </div>
             )}
