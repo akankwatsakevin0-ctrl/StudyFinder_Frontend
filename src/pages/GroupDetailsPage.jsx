@@ -134,7 +134,7 @@ const GroupDetailsPage = () => {
                       onClick={handleDeleteGroup}
                       className="w-full text-left flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
                     >
-                      <Trash2 size={16} /> Decommission Group
+                      <Trash2 size={16} /> Delete Group
                     </button>
                   )}
                 </div>

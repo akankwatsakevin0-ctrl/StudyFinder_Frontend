@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Users, BookOpen, ArrowRight, Activity, ShieldCheck, Loader2, Star, Calendar, Clock, MapPin as Pin, MessageSquare, Plus } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Users, BookOpen, ArrowRight, Activity, ShieldCheck, Loader2, Star, Calendar, Clock, MapPin as Pin, MessageSquare, Plus, Trash2, LogOut, ChevronDown } from 'lucide-react';
 import { groupService, sessionService } from '../services/api';
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
   const [ledGroups, setLedGroups] = useState([]);
   const [joinedGroups, setJoinedGroups] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [openSettingsId, setOpenSettingsId] = useState(null);
+  const settingsRef = useRef(null);
+
   let currentUser = {};
   try {
     const storedUser = localStorage.getItem('user');
@@ -16,6 +20,16 @@ const DashboardPage = () => {
   } catch (e) {
     console.error('Error parsing user from localStorage:', e);
   }
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
+        setOpenSettingsId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +58,28 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
+  const handleDeleteGroup = async (groupId) => {
+    if (!window.confirm('⚠️ Are you sure you want to permanently DELETE this group? All posts, sessions, and members will be erased. This is IRREVERSIBLE.')) return;
+    try {
+      await groupService.deleteGroup(groupId);
+      setLedGroups(prev => prev.filter(g => g.id !== groupId));
+      setOpenSettingsId(null);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error deleting group');
+    }
+  };
+
+  const handleLeaveGroup = async (groupId) => {
+    if (!window.confirm('Are you sure you want to leave this group? You will lose access to discussions and sessions.')) return;
+    try {
+      await groupService.leaveGroup(groupId);
+      setJoinedGroups(prev => prev.filter(g => g.id !== groupId));
+      setOpenSettingsId(null);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error leaving group');
+    }
+  };
+
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] py-20">
       <Loader2 className="animate-spin text-[#002147] mb-4" size={48} />
@@ -70,10 +106,9 @@ const DashboardPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Sections */}
         <div className="lg:col-span-2 space-y-8">
 
-          {/* Groups You Lead Section */}
+          {/* Groups You Lead */}
           {ledGroups.length > 0 && (
             <section className="bg-[#002147]/60 backdrop-blur-md rounded-3xl shadow-xl border border-white/5 overflow-hidden">
               <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
@@ -88,9 +123,35 @@ const DashboardPage = () => {
                 {ledGroups.map(group => (
                   <div key={group.id} className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-[#D4AF37] hover:bg-white/10 transition-all group relative">
                     <div className="absolute top-4 right-4 flex gap-2">
-                      <Link to={`/groups/${group.id}/manage`} className="p-2 bg-black/20 text-blue-200 hover:text-[#D4AF37] rounded-xl border border-white/10 transition shadow-sm" title="Settings">
-                        <Settings size={14} />
-                      </Link>
+                      <div className="relative" ref={openSettingsId === `led-${group.id}` ? settingsRef : null}>
+                        <button
+                          onClick={() => setOpenSettingsId(openSettingsId === `led-${group.id}` ? null : `led-${group.id}`)}
+                          className="p-2 bg-black/20 text-blue-200 hover:text-[#D4AF37] rounded-xl border border-white/10 transition shadow-sm flex items-center gap-1"
+                          title="Settings"
+                        >
+                          <SettingsIcon size={14} />
+                          <ChevronDown size={10} className={`transition-transform ${openSettingsId === `led-${group.id}` ? 'rotate-180' : ''}`} />
+                        </button>
+                        {openSettingsId === `led-${group.id}` && (
+                          <div className="absolute right-0 mt-2 w-52 bg-[#001529] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            <div className="p-2">
+                              <Link
+                                to={`/groups/${group.id}/manage`}
+                                className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-blue-200/60 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                                onClick={() => setOpenSettingsId(null)}
+                              >
+                                <SettingsIcon size={14} /> Manage Group
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteGroup(group.id)}
+                                className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                              >
+                                <Trash2 size={14} /> Delete Group
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                       <Link to={`/groups/${group.id}/sessions/create`} className="p-2 bg-black/20 text-blue-200 hover:text-[#D4AF37] rounded-xl border border-white/10 transition shadow-sm" title="Schedule Session">
                         <Calendar size={14} />
                       </Link>
@@ -113,7 +174,6 @@ const DashboardPage = () => {
                 <Users size={22} className="text-[#D4AF37]" /> Joined Groups
               </h3>
             </div>
-
             {joinedGroups.length === 0 ? (
               <div className="p-16 text-center">
                 <div className="bg-white/5 h-20 w-20 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/10 rotate-3">
@@ -121,43 +181,64 @@ const DashboardPage = () => {
                 </div>
                 <p className="text-blue-100/60 font-bold mb-8">You haven't joined any peer groups yet.</p>
                 <Link to="/groups" className="bg-[#D4AF37] text-[#002147] px-10 py-4 rounded-2xl font-black inline-flex items-center gap-2 hover:bg-yellow-500 transition shadow-xl shadow-yellow-900/10 active:scale-95 uppercase tracking-widest text-xs">
-                   Explore Hub <ArrowRight size={18} />
+                  Explore Hub <ArrowRight size={18} />
                 </Link>
               </div>
             ) : (
               <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {joinedGroups.map(group => (
-                  <Link
-                    key={group.id}
-                    to={`/groups/${group.id}`}
-                    className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-[#D4AF37] hover:bg-white/10 transition-all group"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-black bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-1 rounded border border-[#D4AF37]/20 tracking-widest uppercase">
-                        {group.courseCode}
-                      </span>
-                      <ArrowRight size={16} className="text-white/20 group-hover:text-[#D4AF37] transition-all transform group-hover:translate-x-1" />
-                    </div>
-                    <h4 className="font-bold text-white text-lg leading-tight line-clamp-1">{group.groupName}</h4>
-                    <div className="flex items-center gap-4 mt-4 opacity-50">
-                      <div className="flex items-center gap-1.5 text-[10px] text-blue-100 font-black uppercase tracking-widest">
-                        <Pin size={10} className="text-[#D4AF37]" /> {group.meetingLocation}
+                  <div key={group.id} className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-[#D4AF37] hover:bg-white/10 transition-all group relative">
+                    <div className="absolute top-4 right-4" ref={openSettingsId === `joined-${group.id}` ? settingsRef : null}>
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenSettingsId(openSettingsId === `joined-${group.id}` ? null : `joined-${group.id}`)}
+                          className="p-2 bg-black/20 text-blue-200 hover:text-[#D4AF37] rounded-xl border border-white/10 transition shadow-sm flex items-center gap-1"
+                          title="Settings"
+                        >
+                          <SettingsIcon size={14} />
+                          <ChevronDown size={10} />
+                        </button>
+                        {openSettingsId === `joined-${group.id}` && (
+                          <div className="absolute right-0 mt-2 w-52 bg-[#001529] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            <div className="p-2">
+                              <button
+                                onClick={() => handleLeaveGroup(group.id)}
+                                className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-blue-200/60 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                              >
+                                <LogOut size={14} /> Leave Group
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </Link>
+                    <Link to={`/groups/${group.id}`} className="block">
+                      <div className="flex justify-between items-start mb-3 pr-10">
+                        <span className="text-[10px] font-black bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-1 rounded border border-[#D4AF37]/20 tracking-widest uppercase">
+                          {group.courseCode}
+                        </span>
+                        <ArrowRight size={16} className="text-white/20 group-hover:text-[#D4AF37] transition-all transform group-hover:translate-x-1" />
+                      </div>
+                      <h4 className="font-bold text-white text-lg leading-tight line-clamp-1">{group.groupName}</h4>
+                      <div className="flex items-center gap-4 mt-4 opacity-50">
+                        <div className="flex items-center gap-1.5 text-[10px] text-blue-100 font-black uppercase tracking-widest">
+                          <Pin size={10} className="text-[#D4AF37]" /> {group.meetingLocation}
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
                 ))}
               </div>
             )}
           </section>
         </div>
 
-        {/* Sidebar Widgets - Timeline & Stats */}
+        {/* Sidebar */}
         <div className="space-y-6">
           <section className="bg-[#002147]/80 backdrop-blur-xl rounded-3xl p-8 text-white shadow-2xl border border-white/10">
             <h3 className="font-black text-lg mb-8 flex items-center gap-2 text-white border-b border-white/10 pb-6 tracking-tight uppercase text-xs">
               <Calendar size={18} className="text-[#D4AF37]" /> Learning Timeline
             </h3>
-
             {sessions.length === 0 ? (
               <div className="py-10 text-center opacity-30">
                 <Clock size={40} className="mx-auto mb-4" />
@@ -208,7 +289,6 @@ const DashboardPage = () => {
             </div>
           </section>
 
-          {/* Quick Help Widget */}
           <div className="bg-gray-900 rounded-2xl p-6 text-white text-center shadow-lg">
             <MessageSquare size={24} className="mx-auto mb-3 text-[#D4AF37]" />
             <h4 className="text-sm font-bold mb-2">Academic Support</h4>
@@ -221,7 +301,7 @@ const DashboardPage = () => {
   );
 };
 
-const Settings = ({ size }) => (
+const SettingsIcon = ({ size }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
 );
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { authService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-
+import { Shield } from 'lucide-react';
 const SignUp = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     name: '',

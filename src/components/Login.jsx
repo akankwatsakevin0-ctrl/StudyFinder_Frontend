@@ -15,6 +15,14 @@ const Login = ({ onLogin }) => {
 
     try {
       const userData = await authService.login(email, password);
+      
+      if (userData.role === 'admin') {
+        setError('Administrators must log in via the Admin Portal.');
+        authService.logout();
+        setIsLoading(false);
+        return;
+      }
+      
       onLogin(userData);
     } catch (err) {
       console.error('Login error:', err);

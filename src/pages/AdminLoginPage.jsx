@@ -18,7 +18,7 @@ const AdminLoginPage = ({ onLogin }) => {
     try {
       const userData = await authService.login(email, password);
       
-      if (userData && (userData.role === 'admin' || userData.role === 'user')) { // allowing for both just in case
+      if (userData && userData.role === 'admin') { 
         onLogin(userData);
         navigate('/admin');
       } else {

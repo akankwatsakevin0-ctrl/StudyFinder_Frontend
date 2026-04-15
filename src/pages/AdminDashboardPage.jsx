@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminService } from '../services/api';
+import { adminService, groupService } from '../services/api';
 import {
   Users, BookOpen, LayoutDashboard, TrendingUp,
-  Calendar, ShieldCheck, RefreshCw, AlertCircle, ChevronRight
+  Calendar, ShieldCheck, RefreshCw, AlertCircle, ChevronRight,
+  Trash2, Settings, ChevronDown
 } from 'lucide-react';
 
 // ── Stat Card ──────────────────────────────────────────────────────────────────
@@ -76,6 +77,30 @@ const AdminDashboardPage = ({ user }) => {
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchData();
+  };
+
+  const [groupSettingsOpen, setGroupSettingsOpen] = useState(null);
+  const settingRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (settingRef.current && !settingRef.current.contains(e.target)) {
+        setGroupSettingsOpen(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleAdminDeleteGroup = async (groupId, groupName) => {
+    if (!window.confirm(`⚠️ Are you sure you want to permanently delete "${groupName}"? This will erase all members, posts, and sessions. This action is IRREVERSIBLE.`)) return;
+    try {
+      await groupService.deleteGroup(groupId);
+      setGroups(prev => prev.filter(g => g.id !== groupId));
+      setGroupSettingsOpen(null);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error deleting group');
+    }
   };
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
@@ -344,6 +369,7 @@ const AdminDashboardPage = ({ user }) => {
                   <th className="text-left px-10 py-6 text-[10px] font-black text-blue-100/30 uppercase tracking-[0.2em]">System Code</th>
                   <th className="text-left px-10 py-6 text-[10px] font-black text-blue-100/30 uppercase tracking-[0.2em]">Medium</th>
                   <th className="text-left px-10 py-6 text-[10px] font-black text-blue-100/30 uppercase tracking-[0.2em]">Runtime Status</th>
+                  <th className="text-left px-10 py-6 text-[10px] font-black text-blue-100/30 uppercase tracking-[0.2em]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 bg-[#002147]/20">
@@ -372,6 +398,28 @@ const AdminDashboardPage = ({ user }) => {
                       }`}>
                         {g.isActive ? 'Active' : 'Offline'}
                       </span>
+                    </td>
+                    <td className="px-10 py-6">
+                      <div className="relative">
+                        <button
+                          onClick={() => setGroupSettingsOpen(groupSettingsOpen === g.id ? null : g.id)}
+                          className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-blue-100/50 hover:text-white hover:bg-white/10 transition-all"
+                        >
+                          <Settings size={12} /> Settings <ChevronDown size={10} className={`transition-transform ${groupSettingsOpen === g.id ? 'rotate-180' : ''}`} />
+                        </button>
+                        {groupSettingsOpen === g.id && (
+                          <div ref={settingRef} className="absolute right-0 mt-2 w-52 bg-[#001529] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            <div className="p-2">
+                              <button
+                                onClick={() => handleAdminDeleteGroup(g.id, g.groupName)}
+                                className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                              >
+                                <Trash2 size={14} /> Delete Group
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
