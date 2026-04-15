@@ -91,6 +91,14 @@ export const groupService = {
     const response = await api.post(`/groups/${groupId}/posts`, { content });
     return response.data;
   },
+  deleteGroup: async (id) => {
+    const response = await api.delete(`/groups/${id}`);
+    return response.data;
+  },
+  leaveGroup: async (id) => {
+    const response = await api.post(`/groups/${id}/leave`);
+    return response.data;
+  },
 };
 
 export const sessionService = {

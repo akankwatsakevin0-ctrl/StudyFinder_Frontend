@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Users, MapPin, Clock, ArrowLeft, BookOpen, Layers, MessageSquare, Plus, Settings, Calendar, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Users, MapPin, Clock, ArrowLeft, BookOpen, Layers, MessageSquare, Plus, Settings, Calendar, ExternalLink, LogOut, Trash2, ChevronDown, AlertCircle } from 'lucide-react';
 import { groupService, sessionService } from '../services/api';
 
 const GroupDetailsPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const settingsRef = useRef(null);
   let currentUser = {};
   try {
     const storedUser = localStorage.getItem('user');
@@ -39,6 +42,38 @@ const GroupDetailsPage = () => {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettings(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLeaveGroup = async () => {
+    if (!window.confirm('Are you certain you want to leave this study group? You will lose access to all private discussions and sessions.')) return;
+    
+    try {
+      await groupService.leaveGroup(id);
+      navigate('/groups');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error leaving group');
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!window.confirm('⚠️ DANGER ZONE: This will permanently decommission the group and erase all discussion history. This action IS IRREVERSIBLE. Proceed?')) return;
+    
+    try {
+      await groupService.deleteGroup(id);
+      navigate('/groups');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error decommissioning group');
+    }
+  };
+
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#002147]"></div>
@@ -59,96 +94,138 @@ const GroupDetailsPage = () => {
   );
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center mb-8">
-        <Link to="/groups" className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-[#002147] transition group">
+    <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-between items-center mb-10 overflow-hidden">
+        <Link to="/groups" className="inline-flex items-center text-xs font-black text-blue-100/60 hover:text-[#D4AF37] transition-all group uppercase tracking-widest bg-white/5 px-4 py-2 rounded-xl border border-white/5">
           <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Groups
+          Back to Hub
         </Link>
-        <div className="flex gap-3">
-          <Link to={`/groups/${id}/discussions`} className="bg-[#D4AF37] text-[#002147] px-5 py-2 rounded-xl text-sm font-bold hover:bg-yellow-500 transition flex items-center gap-2 shadow-md">
-            <MessageSquare size={16} /> Discussions
+        <div className="flex gap-4">
+          <Link to={`/groups/${id}/discussions`} className="bg-[#D4AF37] text-[#002147] px-6 py-3 rounded-2xl text-xs font-black hover:bg-yellow-500 transition-all flex items-center gap-3 shadow-xl shadow-yellow-900/10 uppercase tracking-widest active:scale-95">
+            <MessageSquare size={18} /> Discussions
           </Link>
           {isLeader && (
-            <Link to={`/groups/${id}/manage`} className="bg-[#002147] text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-opacity-90 transition flex items-center gap-2 shadow-md">
-              <Settings size={16} /> Manage Group
+            <Link to={`/groups/${id}/manage`} className="bg-white/5 text-white border border-white/10 px-6 py-3 rounded-2xl text-xs font-black hover:bg-white/10 transition-all flex items-center gap-3 shadow-xl uppercase tracking-widest active:scale-95">
+              <Settings size={18} className="text-[#D4AF37]" /> Manage
             </Link>
           )}
+          
+          <div className="relative" ref={settingsRef}>
+            <button 
+              onClick={() => setShowSettings(!showSettings)}
+              className="bg-white/5 text-white border border-white/10 px-6 py-3 rounded-2xl text-xs font-black hover:bg-white/10 transition-all flex items-center gap-3 shadow-xl uppercase tracking-widest active:scale-95"
+            >
+              <Settings size={18} className="text-blue-100/40" /> Settings <ChevronDown size={14} className={`transition-transform duration-300 ${showSettings ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showSettings && (
+              <div className="absolute right-0 mt-3 w-64 bg-[#001529] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in duration-200">
+                <div className="p-2">
+                  {!isLeader && (
+                    <button 
+                      onClick={handleLeaveGroup}
+                      className="w-full text-left flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-blue-200/60 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                    >
+                      <LogOut size={16} /> Leave Group
+                    </button>
+                  )}
+                  {isLeader && (
+                    <button 
+                      onClick={handleDeleteGroup}
+                      className="w-full text-left flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                    >
+                      <Trash2 size={16} /> Decommission Group
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="bg-[#002147] px-8 py-10">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="bg-[#D4AF37] text-[#002147] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+        <div className="lg:col-span-2 space-y-10">
+          <div className="card overflow-hidden !p-0 border-white/10 shadow-2xl">
+            <div className="bg-[#002147] px-10 py-12 relative">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#D4AF37]/50 via-[#D4AF37] to-[#D4AF37]/50"></div>
+              <div className="flex items-center gap-4 mb-6">
+                <span className="bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] font-black px-4 py-1.5 rounded-full border border-[#D4AF37]/20 uppercase tracking-widest">
                   {group.courseCode}
                 </span>
-                <span className="text-blue-200 text-xs font-medium ml-2">{group.meetingType} session</span>
+                <span className="text-blue-200/50 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                  {group.meetingType} session
+                </span>
               </div>
-              <h1 className="text-4xl font-extrabold text-white tracking-tight leading-tight">{group.groupName}</h1>
-              <p className="text-blue-100 text-lg mt-2 font-medium opacity-90">{group.courseName}</p>
+              <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-4">{group.groupName}</h1>
+              <p className="text-blue-100/60 text-lg font-bold opacity-90 max-w-2xl">{group.courseName}</p>
             </div>
 
-            <div className="p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Layers className="text-[#D4AF37]" size={20} /> About this Group
+            <div className="p-10">
+              <h3 className="text-xs font-black text-[#D4AF37] mb-6 flex items-center gap-3 uppercase tracking-widest">
+                <Layers size={18} /> About this Group
               </h3>
-              <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-line">
+              <p className="text-blue-100/70 leading-relaxed text-lg font-medium whitespace-pre-line bg-white/5 p-6 rounded-2xl border border-white/5">
                 {group.description}
               </p>
 
-              <div className="grid grid-cols-2 gap-6 mt-10 pt-8 border-t border-gray-50">
-                <DetailIcon icon={<MapPin className="text-[#D4AF37]" />} label="Location" value={group.meetingLocation} />
-                <DetailIcon icon={<BookOpen className="text-[#D4AF37]" />} label="Faculty" value={group.faculty} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 pt-10 border-t border-white/5">
+                <DetailIcon icon={<MapPin className="text-[#D4AF37]" />} label="Meeting Point" value={group.meetingLocation} />
+                <DetailIcon icon={<BookOpen className="text-[#D4AF37]" />} label="Academic Faculty" value={group.faculty} />
               </div>
             </div>
           </div>
 
           {/* Study Sessions Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Calendar className="text-[#D4AF37]" size={22} /> Study Sessions
-            </h3>
+          <div className="card border-white/10 p-10">
+            <div className="flex justify-between items-center mb-10 pb-6 border-b border-white/5">
+              <h3 className="text-xs font-black text-white flex items-center gap-3 uppercase tracking-widest">
+                <Calendar className="text-[#D4AF37]" size={20} /> Academic Roadmap
+              </h3>
+              {isLeader && sessions.length > 0 && (
+                <Link to={`/groups/${id}/sessions/create`} className="text-[#D4AF37] hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest">
+                  + Add Session
+                </Link>
+              )}
+            </div>
 
             {sessions.length === 0 ? (
-              <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <Clock className="text-gray-300 mx-auto mb-3" size={32} />
-                <p className="text-gray-500 font-medium">No study sessions scheduled yet.</p>
+              <div className="text-center py-20 bg-black/20 rounded-3xl border border-dashed border-white/10">
+                <Clock className="text-white/10 mx-auto mb-6" size={48} />
+                <p className="text-blue-100/40 font-bold mb-8 uppercase tracking-widest text-xs">No active sessions scheduled yet.</p>
                 {isLeader && (
-                  <Link to={`/groups/${id}/sessions/create`} className="mt-4 inline-block text-sm font-bold text-[#002147] hover:underline">
-                    Create the first session
+                  <Link to={`/groups/${id}/sessions/create`} className="bg-[#D4AF37]/10 text-[#D4AF37] px-8 py-3 rounded-2xl font-black text-xs hover:bg-[#D4AF37]/20 transition-all border border-[#D4AF37]/20 uppercase tracking-widest">
+                     Initiate First Session
                   </Link>
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {sessions.map(session => (
-                  <div key={session.id} className="p-5 bg-gray-50 rounded-xl border border-gray-100 hover:border-[#D4AF37]/30 transition group">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <h4 className="font-bold text-gray-800 text-lg">{session.topic}</h4>
-                        <p className="text-sm text-gray-500 line-clamp-1">{session.description}</p>
-                        <div className="flex flex-wrap gap-4 mt-2">
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
-                            <Calendar size={12} className="text-[#D4AF37]" /> {new Date(session.sessionDate).toLocaleDateString()}
-                          </span>
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
-                            <Clock size={12} className="text-[#D4AF37]" /> {session.sessionTime}
-                          </span>
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded border border-gray-100">
-                            <MapPin size={12} className="text-[#D4AF37]" /> {session.location}
+                  <div key={session.id} className="p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-[#D4AF37]/30 transition-all group/session hover:bg-white/10 translate-y-0 hover:-translate-y-1">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                           <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest opacity-70">{new Date(session.sessionDate).toLocaleDateString()}</span>
+                           <div className="h-1 w-1 rounded-full bg-[#D4AF37]/40"></div>
+                           <span className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest">{session.sessionTime}</span>
+                        </div>
+                        <h4 className="font-black text-white text-2xl tracking-tight group-hover/session:text-[#D4AF37] transition-colors">{session.topic}</h4>
+                        <p className="text-sm text-blue-100/50 font-medium leading-relaxed max-w-xl">{session.description}</p>
+                        <div className="flex flex-wrap gap-3 mt-4">
+                          <span className="flex items-center gap-2 text-[10px] font-black text-blue-200/60 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 uppercase tracking-widest">
+                            <MapPin size={12} className="text-[#D4AF37]/50" /> {session.location}
                           </span>
                         </div>
                       </div>
                       {session.location.startsWith('http') && (
                         <a
                           href={session.location} target="_blank" rel="noopener noreferrer"
-                          className="bg-[#002147] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
+                          className="bg-white/10 hover:bg-[#D4AF37] text-white hover:text-[#002147] px-6 py-4 rounded-2xl text-[10px] font-black transition-all flex items-center justify-center gap-3 uppercase tracking-widest border border-white/10 hover:border-transparent min-w-[180px]"
                         >
-                          Join Meeting <ExternalLink size={14} />
+                          Launch Meeting <ExternalLink size={16} />
                         </a>
                       )}
                     </div>
@@ -157,9 +234,9 @@ const GroupDetailsPage = () => {
                 {isLeader && (
                   <Link
                     to={`/groups/${id}/sessions/create`}
-                    className="block w-full text-center py-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-gray-500 font-bold hover:bg-gray-100 hover:border-[#D4AF37]/50 transition"
+                    className="block w-full text-center py-6 bg-white/2 hover:bg-white/5 border border-dashed border-white/10 rounded-3xl text-blue-100/30 font-black hover:text-[#D4AF37] hover:border-[#D4AF37]/30 transition-all uppercase tracking-widest text-[10px]"
                   >
-                    + Schedule New Session
+                    + Schedule Next Research Session
                   </Link>
                 )}
               </div>
@@ -169,50 +246,53 @@ const GroupDetailsPage = () => {
         </div>
 
         {/* Info Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <h3 className="text-lg font-bold text-[#002147] mb-6 flex items-center gap-2 border-b border-gray-50 pb-4">
+        <div className="space-y-8">
+          <div className="card border-white/10 !p-8 shadow-2xl">
+            <h3 className="text-xs font-black text-white mb-8 flex items-center gap-3 border-b border-white/5 pb-6 uppercase tracking-widest">
               <Users size={20} className="text-[#D4AF37]" /> Group Overview
             </h3>
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500 font-medium">Status</span>
-                <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded border border-green-200 uppercase">Active</span>
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <span className="text-[10px] text-blue-100/40 font-black uppercase tracking-widest">Auth Status</span>
+                <span className="bg-green-500/10 text-green-400 text-[10px] font-black px-3 py-1 rounded-lg border border-green-500/20 uppercase tracking-widest">Active Member</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500 font-medium">Members Joined</span>
-                <span className="text-[#002147] font-bold">You are a member</span>
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <span className="text-[10px] text-blue-100/40 font-black uppercase tracking-widest">Member Since</span>
+                <span className="text-white font-black text-xs uppercase tracking-widest">Academic Term</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500 font-medium">Meeting Time</span>
-                <span className="text-gray-700 font-bold text-sm">Every Friday, 2 PM</span>
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <span className="text-[10px] text-blue-100/40 font-black uppercase tracking-widest">Frequency</span>
+                <span className="text-white font-black text-xs uppercase tracking-widest">Weekly Sessions</span>
               </div>
             </div>
-            <button className="w-full mt-8 bg-gray-50 text-gray-400 py-3 rounded-xl font-bold border border-dashed border-gray-200 cursor-not-allowed">
-              Already Joined
-            </button>
+            <div className="mt-10 p-4 bg-[#D4AF37] rounded-2xl text-[#002147] font-black text-xs text-center uppercase tracking-widest shadow-lg shadow-yellow-900/20 opacity-90">
+              Registration Complete
+            </div>
           </div>
 
-          <div className="bg-[#D4AF37]/10 rounded-2xl p-6 border border-[#D4AF37]/20">
-            <h4 className="text-[#002147] font-bold mb-2 text-sm flex items-center gap-2">
-              <Plus size={16} /> Need help?
+          <div className="bg-[#D4AF37]/10 rounded-3xl p-8 border border-[#D4AF37]/20 relative overflow-hidden group/tip">
+            <div className="absolute -top-10 -right-10 opacity-5 group-hover/tip:opacity-10 transition-opacity rotate-12">
+               <Plus size={150} className="text-[#D4AF37]" />
+            </div>
+            <h4 className="text-white font-black mb-3 text-xs flex items-center gap-2 uppercase tracking-widest">
+              <Plus size={16} className="text-[#D4AF37]" /> Administrative Support
             </h4>
-            <p className="text-gray-600 text-xs leading-relaxed">
-              If you have trouble finding the physical meeting spot, please contact the group leader or your department rep.
+            <p className="text-blue-100/50 text-[10px] font-bold leading-relaxed uppercase tracking-tighter">
+              If you have trouble finding physical resources, please contact the group leader or the department rep via the portal.
             </p>
           </div>
         </div>
       </div>
     </div>
-  );
+);
 };
 
 const DetailIcon = ({ icon, label, value }) => (
-  <div className="flex items-start gap-4">
-    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">{icon}</div>
+  <div className="flex items-start gap-4 p-5 bg-white/5 rounded-3xl border border-white/5 group/icon transition-all hover:bg-white/10">
+    <div className="bg-black/20 p-4 rounded-2xl border border-white/10 group-hover/icon:border-[#D4AF37]/50 transition-all">{icon}</div>
     <div>
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-gray-900 font-bold">{value}</p>
+      <p className="text-[10px] font-black text-blue-100/30 uppercase tracking-widest mb-1.5">{label}</p>
+      <p className="text-white font-black tracking-tight leading-tight">{value}</p>
     </div>
   </div>
 );

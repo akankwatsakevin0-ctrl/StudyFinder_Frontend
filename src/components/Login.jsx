@@ -30,60 +30,68 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg mt-10 border-t-4 border-[#002147]">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-[#002147]">Welcome Back</h2>
-        <p className="text-gray-600 font-medium">Sign in to join your study groups</p>
+    <div className="max-w-md mx-auto card mt-8 mb-12 relative overflow-hidden group">
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-[#D4AF37] opacity-50 group-hover:opacity-100 transition-opacity"></div>
+      
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-black text-white tracking-tighter mb-1">Welcome Back</h2>
+        <p className="text-blue-100/60 font-bold text-xs uppercase tracking-widest">Sign in to your UCU study hub</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center justify-center font-medium">
+        <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-2xl flex items-center justify-center font-bold animate-in fade-in slide-in-from-top-2">
           {error}
         </div>
       )}
 
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+          <label className="block text-[10px] font-black text-[#D4AF37] uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
           <input 
             type="email" 
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#002147] outline-none transition" 
+            className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition text-white placeholder-white/20 font-bold text-sm" 
             placeholder="student@ucu.ac.ug" 
           />
         </div>
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+          <label className="block text-[10px] font-black text-[#D4AF37] uppercase tracking-widest mb-1.5 ml-1">Password</label>
           <input 
             type="password" 
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#002147] outline-none transition" 
+            className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition text-white placeholder-white/20 font-bold text-sm" 
             placeholder="••••••••" 
           />
         </div>
-        <div className="flex items-center justify-between">
-          <label className="flex items-center text-sm text-gray-600 cursor-pointer">
-            <input type="checkbox" className="mr-2" /> Remember me
+        <div className="flex items-center justify-between px-2">
+          <label className="flex items-center text-xs font-bold text-blue-100/40 cursor-pointer hover:text-white transition-colors">
+            <input type="checkbox" className="mr-2 rounded border-white/10 bg-white/5 accent-[#D4AF37]" /> Remember me
           </label>
-          <a href="#" className="text-sm font-semibold text-[#002147] hover:underline">Forgot password?</a>
+          <a href="#" className="text-xs font-black text-[#D4AF37] hover:underline uppercase tracking-widest">Forgot password?</a>
         </div>
         <button 
           type="submit"
           disabled={isLoading}
-          className={`w-full bg-[#002147] text-white py-4 rounded-lg font-bold text-lg hover:bg-opacity-90 transition shadow-md ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          className={`w-full bg-[#D4AF37] text-[#002147] py-2.5 rounded-xl font-black text-sm hover:bg-yellow-500 transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-yellow-900/20 uppercase tracking-widest ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          {isLoading ? 'Signing In...' : 'Sign In'}
+          {isLoading ? 'Authenticating...' : 'Sign In'}
         </button>
       </form>
-      <div className="mt-8 text-center text-sm text-gray-600 space-y-3">
-        <p>Don't have an account? <Link to="/signup" className="text-[#D4AF37] font-bold hover:underline">Create an account</Link></p>
-        <p className="pt-4 border-t border-gray-100 mt-4">
-          Are you an administrator? <Link to="/admin/login" className="text-[#002147] font-bold hover:underline">Admin Sign In</Link>
+      <div className="mt-6 text-center space-y-3">
+        <p className="text-xs text-blue-100/40 font-bold">
+          Don't have an account? <Link to="/signup" className="text-white hover:text-[#D4AF37] transition-colors ml-1">Create an account</Link>
         </p>
+        <div className="pt-4 border-t border-white/5">
+          <p className="text-[10px] text-blue-100/30 font-black uppercase tracking-widest mb-2">Staff & Administration</p>
+          <Link to="/admin/login" className="inline-block px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] text-white font-black hover:bg-white/10 hover:border-[#D4AF37]/50 transition-all uppercase tracking-widest">
+            Admin Portal Access
+          </Link>
+        </div>
       </div>
     </div>
   );

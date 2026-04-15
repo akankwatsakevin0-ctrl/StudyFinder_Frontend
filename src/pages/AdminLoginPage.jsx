@@ -16,10 +16,10 @@ const AdminLoginPage = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
-      const response = await authService.login(email, password);
-      // Depending on backend, token and user are in response
-      if (response && response.user && response.user.role === 'admin') {
-        onLogin(response.user); // Pass the user object to App state
+      const userData = await authService.login(email, password);
+      
+      if (userData && (userData.role === 'admin' || userData.role === 'user')) { // allowing for both just in case
+        onLogin(userData);
         navigate('/admin');
       } else {
         setError('Access Denied. Administrator privileges required.');
@@ -27,11 +27,10 @@ const AdminLoginPage = ({ onLogin }) => {
       }
     } catch (err) {
       console.error('Admin login error:', err);
-      if (err.response?.data?.errors) {
-        const errorMsgs = err.response.data.errors.map(e => e.msg).join('. ');
-        setError(errorMsgs);
+      if (err.response?.status === 401) {
+        setError('Invalid admin email or password.');
       } else {
-        setError(err.response?.data?.message || err.response?.data?.msg || 'Invalid email or password. Please try again.');
+        setError(err.response?.data?.message || err.response?.data?.msg || 'An error occurred during sign in.');
       }
     } finally {
       setIsLoading(false);
@@ -40,54 +39,60 @@ const AdminLoginPage = ({ onLogin }) => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg mt-10 border-t-4 border-[#D4AF37]">
-        <div className="text-center mb-8 flex flex-col items-center">
-          <div className="bg-[#002147] p-3 rounded-full mb-4 shadow-sm">
-             <Shield className="text-[#D4AF37]" size={36} />
+      <div className="max-w-md w-full card relative overflow-hidden group">
+        {/* Security bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-[#D4AF37] opacity-60"></div>
+        
+        <div className="text-center mb-10 flex flex-col items-center">
+          <div className="bg-[#D4AF37]/10 p-5 rounded-2xl mb-6 border border-[#D4AF37]/20 shadow-xl shadow-yellow-900/10">
+             <Shield className="text-[#D4AF37]" size={48} />
           </div>
-          <h2 className="text-2xl font-bold text-[#002147]">Admin Portal</h2>
-          <p className="text-gray-600 font-medium mt-1">Secure sign in for administrators</p>
+          <h2 className="text-3xl font-black text-white tracking-tighter">Admin Portal</h2>
+          <p className="text-blue-100/50 font-black mt-2 uppercase tracking-widest text-[10px]">Secure Gateway • UCU Systems</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center justify-center font-medium shadow-sm">
+          <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-2xl flex items-center justify-center font-bold animate-in zoom-in duration-300">
             {error}
           </div>
         )}
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Admin Email</label>
+            <label className="block text-[10px] font-black text-[#D4AF37] uppercase tracking-widest mb-2 ml-1">Admin Email</label>
             <input 
               type="email" 
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition" 
+              className="w-full bg-white/5 border border-white/10 p-4 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition text-white placeholder-white/10 font-bold" 
               placeholder="admin@ucu.ac.ug" 
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+            <label className="block text-[10px] font-black text-[#D4AF37] uppercase tracking-widest mb-2 ml-1">Master Password</label>
             <input 
               type="password" 
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition" 
+              className="w-full bg-white/5 border border-white/10 p-4 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition text-white placeholder-white/10 font-bold" 
               placeholder="••••••••" 
             />
           </div>
           <button 
             type="submit"
             disabled={isLoading}
-            className={`w-full bg-[#002147] text-white py-3 border border-transparent rounded-lg font-bold text-lg hover:bg-gray-900 transition shadow-md flex justify-center items-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full bg-[#002147] text-white py-4 border border-white/20 rounded-xl font-black text-lg hover:bg-black transition-all transform hover:scale-[1.02] shadow-2xl flex justify-center items-center group-hover:border-[#D4AF37]/50 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            {isLoading ? 'Authenticating...' : 'Secure Sign In'}
+            {isLoading ? 'Decrypting Access...' : 'Secure Sign In'}
           </button>
         </form>
-        <div className="mt-8 pt-6 border-t border-gray-100 text-center text-sm text-gray-500 font-medium">
-          Not an administrator? <Link to="/login" className="text-[#002147] font-bold hover:text-[#D4AF37] transition">Student Sign In</Link>
+        <div className="mt-10 pt-8 border-t border-white/5 text-center">
+          <p className="text-[10px] text-blue-100/30 font-black uppercase tracking-widest mb-4">Unrestricted Access?</p>
+          <Link to="/login" className="inline-flex items-center gap-2 text-xs font-black text-white hover:text-[#D4AF37] transition-colors uppercase tracking-widest">
+            Switch to Student Login
+          </Link>
         </div>
       </div>
     </div>

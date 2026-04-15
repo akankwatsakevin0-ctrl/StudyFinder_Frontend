@@ -46,7 +46,7 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 text-gray-900">
+      <div className="min-h-screen text-gray-900" style={{ backgroundImage: "url('/bg.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundColor: '#001a3a' }}>
         <Toaster position="top-right" />
         <Navbar isLoggedIn={isLoggedIn} user={user} onLogout={handleLogout} />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
